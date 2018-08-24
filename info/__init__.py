@@ -6,8 +6,7 @@ from flask_session import Session
 from config import config_dict
 import logging
 from logging.handlers import RotatingFileHandler
-# 导入蓝图
-from info.modules.index import index_bp
+
 
 # 将数据库对象暴露给外界调用
 # 当app没有值的时候，我们创建一个空的数据库db对象
@@ -65,6 +64,8 @@ def create_app(config_name): # development
     # 6.创建session拓展类的对象(将session的存储调整到redis中)
     Session(app)
 
+    # 导入蓝图（延迟导入：解决循环导入文件）
+    from info.modules.index import index_bp
     # 3.注册蓝图
     app.register_blueprint(index_bp)
 
