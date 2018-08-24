@@ -9,6 +9,12 @@ from logging.handlers import RotatingFileHandler
 # 导入蓝图
 from info.modules.index import index_bp
 
+# 将数据库对象暴露给外界调用
+# 当app没有值的时候，我们创建一个空的数据库db对象
+db = SQLAlchemy()
+# 将redis数据库对象暴露给外界调用
+# # type: StrictRedis作用： 事先声明redis_store以后要保存什么类型的数据
+redis_store = None # type: StrictRedis
 
 def create_log(config_name):
     """记录日志的配置函数"""
@@ -45,10 +51,14 @@ def create_app(config_name): # development
     app.config.from_object(configClass)
 
     # 3. 创建mysql数据库对象
-    db = SQLAlchemy(app)
-    # 4. 创建redis数据库对象
+    # 懒加载，延迟加载
+    db.init_app(app)
+
+    # 4. 创建redis数据库对象 延迟加载
+    global redis_store
     redis_store = StrictRedis(host=configClass.REDIS_HOST, port=configClass.REDIS_PORT,
                               db=configClass.REDIS_NUM)
+
     # 5. 开启csrf后端保护验证机制
     # 提取cookie中的csrf_token和ajax请求头里面csrf_token进行比较验证操作
     csrf = CSRFProtect(app)
