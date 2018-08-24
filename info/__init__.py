@@ -6,6 +6,8 @@ from flask_session import Session
 from config import config_dict
 import logging
 from logging.handlers import RotatingFileHandler
+# 导入蓝图
+from info.modules.index import index_bp
 
 
 def create_log(config_name):
@@ -27,9 +29,9 @@ def create_log(config_name):
     # 为全局的日志工具对象（flask app使用的）添加日志记录器
     logging.getLogger().addHandler(file_log_handler)
 
+
 # 外界使用方式:  create_app("development") --> 开发模式的app
 #              create_app("production")  --> 线上模式的app
-
 def create_app(config_name): # development
     """生产app的工厂方法"""
 
@@ -52,5 +54,8 @@ def create_app(config_name): # development
     csrf = CSRFProtect(app)
     # 6.创建session拓展类的对象(将session的存储调整到redis中)
     Session(app)
+
+    # 3.注册蓝图
+    app.register_blueprint(index_bp)
 
     return app

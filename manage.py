@@ -11,28 +11,16 @@ app = create_app("development")
 # 7. 创建manager管理类
 manager = Manager(app)
 
-
-
-
-@app.route('/')
-def hello_world():
-    # 没有调整之前： 数据存在在flask后端服务器，只是将session_id使用cookie的方式给了客户端
-    session["name"] = "curry"
-
-    return 'Hello World! 6666'
-
-
 if __name__ == '__main__':
+
     # python manage.py runserver -h -p -d
-
-    logging.debug("debug的日志信息")
-    logging.info("info的日志信息")
-    logging.warning("warning的日志信息")
-    logging.error("error的日志信息")
-    logging.critical("critical的日志信息")
-
-    # 在 Flask框架 中，其自己对 Python 的 logging 进行了封装，在 Flask 应用程序中，可以以如下方式进行输出 log:
-    current_app.logger.info("使用flask封住好的方法 info的日志信息")
-
+    # logging.debug("debug的日志信息")
+    # logging.info("info的日志信息")
+    # logging.warning("warning的日志信息")
+    # logging.error("error的日志信息")
+    # logging.critical("critical的日志信息")
+    #
+    # # 在 Flask框架 中，其自己对 Python 的 logging 进行了封装，在 Flask 应用程序中，可以以如下方式进行输出 log:
+    # current_app.logger.info("使用flask封住好的方法 info的日志信息")
 
     manager.run()
