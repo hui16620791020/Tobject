@@ -6,7 +6,10 @@ from flask_session import Session
 from config import config_dict
 import logging
 from logging.handlers import RotatingFileHandler
-
+# 出现MySQLdb导入错误的时候调用下面导入方式
+# import pymysql
+# 使用install_as_MySQLdb函数将pymysql MySQLdb一起使用
+# pymysql.install_as_MySQLdb()
 
 # 将数据库对象暴露给外界调用
 # 当app没有值的时候，我们创建一个空的数据库db对象

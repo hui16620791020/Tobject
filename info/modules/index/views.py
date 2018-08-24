@@ -1,6 +1,9 @@
 from . import index_bp
 from flask import session, current_app
-from info import redis_store
+from info import redis_store, models
+
+
+
 
 
 #2. 使用蓝图对象
