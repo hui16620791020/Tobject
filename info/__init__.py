@@ -64,7 +64,7 @@ def create_app(config_name): # development
 
     # 5. 开启csrf后端保护验证机制
     # 提取cookie中的csrf_token和ajax请求头里面csrf_token进行比较验证操作
-    csrf = CSRFProtect(app)
+    # csrf = CSRFProtect(app)
     # 6.创建session拓展类的对象(将session的存储调整到redis中)
     Session(app)
 

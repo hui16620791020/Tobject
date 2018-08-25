@@ -10,7 +10,7 @@ from info.lib.yuntongxun.sms import CCP
 import json
 import random
 
-
+# /passport/sms_code
 @passport_bp.route('/sms_code', methods=["POST"])
 def send_sms():
     """点击发送短信验证码接口"""
