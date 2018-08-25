@@ -58,8 +58,9 @@ def create_app(config_name): # development
 
     # 4. 创建redis数据库对象 延迟加载
     global redis_store
+    # decode_responses=True 从redis中获取的值是str类
     redis_store = StrictRedis(host=configClass.REDIS_HOST, port=configClass.REDIS_PORT,
-                              db=configClass.REDIS_NUM)
+                              db=configClass.REDIS_NUM,decode_responses=True)
 
     # 5. 开启csrf后端保护验证机制
     # 提取cookie中的csrf_token和ajax请求头里面csrf_token进行比较验证操作
