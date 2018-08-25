@@ -153,6 +153,14 @@ var imageCodeId = ""
 // TODO 生成一个图片验证码的编号，并设置页面中图片验证码img标签的src属性
 function generateImageCode() {
 
+    // 生成随机值编号
+    imageCodeId = generateUUID()
+    // 构建请求验证码图片的url
+    var url = "/image_code?imageCodeId=" + imageCodeId
+    // 发送get请求
+    $(".get_pic_code").attr("src", url)
+
+
 }
 
 // 发送短信验证码
@@ -198,7 +206,7 @@ function getCookie(name) {
     var r = document.cookie.match("\\b" + name + "=([^;]*)\\b");
     return r ? r[1] : undefined;
 }
-
+//生成UUID函数
 function generateUUID() {
     var d = new Date().getTime();
     if(window.performance && typeof window.performance.now === "function"){
