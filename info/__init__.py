@@ -68,8 +68,13 @@ def create_app(config_name): # development
     Session(app)
 
     # 导入蓝图（延迟导入：解决循环导入文件）
-    from info.modules.index import index_bp
     # 3.注册蓝图
+    # 首页蓝图
+    from info.modules.index import index_bp
     app.register_blueprint(index_bp)
+
+    # 登录注册模块
+    from info.modules.passport import passport_bp
+    app.register_blueprint(passport_bp)
 
     return app
