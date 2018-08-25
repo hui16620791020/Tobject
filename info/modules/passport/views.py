@@ -8,7 +8,6 @@ from info import constants
 # 127.0.0.1:5000/passport/image_code?imageCodeId=编号
 @passport_bp.route('/image_code')
 def get_imagecode():
-
     """
     图片验证码的后端接口(GET)
     1. 获取参数
