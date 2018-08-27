@@ -1,3 +1,4 @@
+from info.models import User
 from . import index_bp
 from flask import session, current_app, render_template
 from info import redis_store, models
@@ -7,14 +8,23 @@ from info import redis_store, models
 # 127.0.0.1:5000/index/
 @index_bp.route('/')
 def index():
+    #  查询用户信息将用户信息通过模板带回进行展示
+    # 1. 如果用户登录成功就能够获取用户的id
+    user_id = session.get("user_id")
+    # 2. 根据用户id查询用户所有的数据
+    if user_id:
+        user = User.query.get(user_id)
 
-    # ImportError: cannot import name 'redis_store' 循环导入
-    # redis_store.set("name", "laowang")
-    # current_app.logger.debug("记录日志")
-    # # 没有调整之前： 数据存在在flask后端服务器，只是将session_id使用cookie的方式给了客户端
-    # session["name"] = "curry"
-    print(current_app.url_map)
-    return render_template("index.html")
+    # if user:
+    #     return user.to_dict()
+    # else:
+    #     return None
+    # 3.经用户模型对象转换成用户的字典对象
+    data = {
+        "user_info": user.to_dict() if user else None
+    }
+
+    return render_template("index.html", data=data)
 
 
 #返回web的头像图标
