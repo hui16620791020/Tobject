@@ -65,6 +65,9 @@ def register():
     user.nick_name = mobile
     user.mobile = mobile
     #TODO:对密码进行赋值（加密）
+    # 触发了底层的set方法进而在set方法里面进行加密处理
+    user.password = password
+
     # 获取当前时间作为最后一次登录时间
     user.last_login = datetime.now()
     try:
