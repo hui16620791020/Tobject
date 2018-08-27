@@ -204,7 +204,36 @@ $(function(){
 
 
     })
+
+
 })
+
+function login_out() {
+
+    //退出登录
+    // 发起注册请求
+    $.ajax({
+        // 设置url
+         url: "/passport/login_out",
+         // 设置请求方式
+         type: "post",
+         // 在请求头里面带上csrf_token随机值
+         headers:{
+             "X-CSRFToken": getCookie("csrf_token")
+         },
+         // 声明上传的数据内容格式是 json字符串
+         dataType: "json",
+         success: function (resp) {
+            if(resp.errno == "0"){
+                // 返回成功 刷新页面
+                location.reload()
+            }else{
+
+            }
+         }
+     })
+
+}
 
 var imageCodeId = ""
 

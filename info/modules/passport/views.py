@@ -12,6 +12,19 @@ import json
 import random
 from datetime import datetime
 
+
+@passport_bp.route('/login_out', methods=["POST"])
+def login_out():
+    """退出登录接口"""
+
+    # 清除session数据退出登录
+    session.pop("user_id", None)
+    session.pop("nick_name", None)
+    session.pop("mobile", None)
+
+    return jsonify(errno=RET.OK, errmsg="退出登录成功")
+
+
 @passport_bp.route('/login', methods=["POST"])
 def login():
     """用户登录接口"""
