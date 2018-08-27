@@ -211,7 +211,7 @@ $(function(){
 function login_out() {
 
     //退出登录
-    // 发起注册请求
+    //发起注册请求
     $.ajax({
         // 设置url
          url: "/passport/login_out",

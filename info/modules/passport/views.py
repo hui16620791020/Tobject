@@ -12,7 +12,7 @@ import json
 import random
 from datetime import datetime
 
-
+# 127.0.0.1：5000/passport/login_out POST
 @passport_bp.route('/login_out', methods=["POST"])
 def login_out():
     """退出登录接口"""

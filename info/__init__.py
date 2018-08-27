@@ -13,6 +13,8 @@ from logging.handlers import RotatingFileHandler
 
 # 将数据库对象暴露给外界调用
 # 当app没有值的时候，我们创建一个空的数据库db对象
+from info.utils.common import do_index_class
+
 db = SQLAlchemy()
 # 将redis数据库对象暴露给外界调用
 # # type: StrictRedis作用： 事先声明redis_store以后要保存什么类型的数据
@@ -76,10 +78,11 @@ def create_app(config_name): # development
         #3. 返回响应对象
         return response
 
-
-
     # 6.创建session拓展类的对象(将session的存储调整到redis中)
     Session(app)
+
+    # 注册自定义过滤器
+    app.add_template_filter(do_index_class, "do_index_class")
 
     # 导入蓝图（延迟导入：解决循环导入文件）
     # 3.注册蓝图
@@ -90,5 +93,7 @@ def create_app(config_name): # development
     # 登录注册模块
     from info.modules.passport import passport_bp
     app.register_blueprint(passport_bp)
+
+
 
     return app
