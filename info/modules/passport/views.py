@@ -1,14 +1,90 @@
+from flask import session
 from . import passport_bp
 from flask import request, abort, current_app, make_response, jsonify
 from info.utils.captcha.captcha import captcha
 from info import redis_store
 from info.utils.response_code import RET
-from info import constants
+from info import constants, db
 import re
 from info.models import User
 from info.lib.yuntongxun.sms import CCP
 import json
 import random
+from datetime import datetime
+
+
+
+@passport_bp.route('/register', methods=["POST"])
+def register():
+    """注册接口"""
+    """
+    1.获取参数
+        1.1 手机号码 短信验证码 密码
+    2.校验参数
+        2.1 手机号码 短信验证码 密码非空判断
+        2.2 手机号码验证
+    3.逻辑处理
+        3.1 根据手机号码的keySMS_18520340803去redis中获取真实的短信验证码
+        3.2 对比用户填写的短信验证码和真实的短信验证是否一致
+        3.3 一致：创建用户对象给里面的属性赋值，存储到mysql数据库User表里面去
+        3.4 一般注册成功就代表你有登录过一次，可以使用session记录你的登录状态
+    4.返回值处理
+    """
+    #1.1 手机号码 短信验证码 密码
+    params_dict = request.json
+    mobile = params_dict.get("mobile")
+    smscode = params_dict.get("smscode")
+    password = params_dict.get("password")
+
+    #2.1 手机号码 短信验证码 密码非空判断
+    if not all([mobile, smscode, password]):
+        # 返回错误给前端展示
+        return jsonify(errno=RET.PARAMERR, errmsg="提交参数不足")
+    #2.2 手机号码格式校验
+    if not re.match('1[3578][0-9]{9}', mobile):
+        return jsonify(errno=RET.PARAMERR, errmsg="手机号码格式错误")
+
+    #3.1 根据手机号码的key SMS_18520340803去redis中获取真实的短信验证码
+    try:
+        real_sms_code = redis_store.get("SMS_%s" % mobile)
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg="获取真实短信验证码异常")
+
+    if not real_sms_code:
+        # 表示短信验证码过期
+        return jsonify(errno=RET.NODATA, errmsg="短信验证码过期")
+
+    #3.2 对比用户填写的短信验证码和真实的短信验证是否一致
+    if real_sms_code != smscode:
+        return jsonify(errno=RET.DATAERR, errmsg="短信验证码填写错误")
+
+    #3.3 一致：创建用户对象给里面的属性赋值，存储到mysql数据库User表里面去
+    # 创建用户对象给属性赋值
+    user = User()
+    user.nick_name = mobile
+    user.mobile = mobile
+    #TODO:对密码进行赋值（加密）
+    # 获取当前时间作为最后一次登录时间
+    user.last_login = datetime.now()
+    try:
+        db.session.add(user)
+        db.session.commit()
+    except Exception as e:
+        current_app.logger.error(e)
+        # 数据库回滚
+        db.session.rollback()
+        return jsonify(errno=RET.DBERR, errmsg="添加用户到数据库异常")
+
+    #3.4 一般注册成功就代表你有登录过一次，可以使用session记录你的登录状态
+    session["user_id"] = user.id
+    session["nick_name"] = user.nick_name
+    session["mobile"] = user.mobile
+
+    #4.返回注册成功的响应
+    return jsonify(errno=RET.OK, errmsg="注册成功")
+
+
 
 # /passport/sms_code
 @passport_bp.route('/sms_code', methods=["POST"])
