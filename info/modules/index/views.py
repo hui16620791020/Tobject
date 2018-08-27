@@ -11,6 +11,8 @@ def index():
     #  查询用户信息将用户信息通过模板带回进行展示
     # 1. 如果用户登录成功就能够获取用户的id
     user_id = session.get("user_id")
+
+    user = None
     # 2. 根据用户id查询用户所有的数据
     if user_id:
         user = User.query.get(user_id)

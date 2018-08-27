@@ -1,7 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask import Flask
 from redis import StrictRedis
-from flask_wtf.csrf import CSRFProtect
+from flask_wtf.csrf import CSRFProtect, generate_csrf
 from flask_session import Session
 from config import config_dict
 import logging
@@ -64,7 +64,20 @@ def create_app(config_name): # development
 
     # 5. 开启csrf后端保护验证机制
     # 提取cookie中的csrf_token和ajax请求头里面csrf_token进行比较验证操作
-    # csrf = CSRFProtect(app)
+    csrf = CSRFProtect(app)
+
+    # 在每一次请求之后 将csrf_token值设置到cookie中
+    @app.after_request
+    def set_csrf_token(response):
+        #1. 生成csrf_token随机值
+        csrf_token = generate_csrf()
+        #2. 借助响应对象设置csrf_token到cookie中
+        response.set_cookie("csrf_token", csrf_token)
+        #3. 返回响应对象
+        return response
+
+
+
     # 6.创建session拓展类的对象(将session的存储调整到redis中)
     Session(app)
 

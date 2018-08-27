@@ -121,11 +121,14 @@ $(function(){
              url: "/passport/login",
              // 设置请求方式
              type: "post",
-             // 将js对象转换成json字符串发送给后端
+             // 将js对象转换成json字符串发送给后端main
              data: JSON.stringify(params),
              // 声明上传的数据内容格式是 json字符串
              contentType: "application/json",
              dataType: "json",
+             headers: {
+                 "X-CSRFToken": getCookie("csrf_token")
+             },
              success: function (resp) {
                 if(resp.errno == "0"){
                     // 返回成功 刷新页面
@@ -183,6 +186,9 @@ $(function(){
             data: JSON.stringify(params),
             contentType: "application/json",
             dataType: "json",
+            headers: {
+                 "X-CSRFToken": getCookie("csrf_token")
+            },
             success: function (resp) {
                 if(resp.errno == "0"){
                     //注册成功回调 刷新页面
@@ -248,6 +254,9 @@ function sendSMSCode() {
         data: JSON.stringify(params),
         contentType: "application/json",
         dataType: "json",
+        headers: {
+                 "X-CSRFToken": getCookie("csrf_token")
+        },
         success: function (resp) {
             if(resp.errno == "0"){
                 // 发送短信验证成功的回调函数
@@ -313,6 +322,7 @@ function fnSetIframeHeight(num){
 }
 
 function getCookie(name) {
+    // csrf_token : slkamdaslkdjsalkdsaj
     var r = document.cookie.match("\\b" + name + "=([^;]*)\\b");
     return r ? r[1] : undefined;
 }
