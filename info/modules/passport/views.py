@@ -13,7 +13,6 @@ import random
 from datetime import datetime
 
 
-
 @passport_bp.route('/register', methods=["POST"])
 def register():
     """注册接口"""
@@ -132,7 +131,7 @@ def send_sms():
         real_image_code = redis_store.get("imagecode_%s" %image_code_id)
         # 3.1.1 image_code_id有值，删除 防止下次多次使用同一个real_image_code来访问
         if real_image_code:
-            redis_store.delete(real_image_code)
+            redis_store.delete("imagecode_%s" %image_code_id)
     except Exception as e:
         # 记录日志
         current_app.logger.error(e)

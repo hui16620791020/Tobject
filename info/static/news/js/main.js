@@ -115,7 +115,7 @@ $(function(){
 
     // TODO 注册按钮点击
     $(".register_form_con").submit(function (e) {
-        // 阻止默认提交操作
+        // 阻止表单默认提交操作 event表单的点击事件
         e.preventDefault()
 
 		// 取到用户输入的内容
@@ -143,7 +143,33 @@ $(function(){
             return;
         }
 
+        //组织请求参数，js对象
+        params = {
+            "mobile": mobile,
+            "smscode": smscode,
+            "password": password
+        }
+
         // 发起注册请求
+        $.ajax({
+            url: "/passport/register",
+            type: "post",
+            data: JSON.stringify(params),
+            contentType: "application/json",
+            dataType: "json",
+            success: function (resp) {
+                if(resp.errno == "0"){
+                    //注册成功回调 刷新页面
+                     location.reload()
+                }else{
+                    //注册失败 显示失败的原因
+                    $("#register-password-err").html(resp.errmsg)
+                    $("#register-password-err").show()
+                }
+            }
+
+        })
+
 
     })
 })
