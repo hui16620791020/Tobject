@@ -12,6 +12,70 @@ import json
 import random
 from datetime import datetime
 
+@passport_bp.route('/login', methods=["POST"])
+def login():
+    """用户登录接口"""
+    """
+    1.获取参数
+        1.1 获取手机号码 密码（未加密）
+    2.校验参数
+        2.1 判断是否为空
+        2.2 手机号码格式校验
+    3.逻辑处理
+        3.1 根据手机号码查询用户
+        3.2 用户填写的密码和用户之前设置密码进行比较
+        3.2 一致：登录成功 使用session记录用户信息
+    4.返回值处理
+    """
+
+    # 1.1 手机号码 密码
+    params_dict = request.json
+    mobile = params_dict.get("mobile")
+    password = params_dict.get("password")
+
+    # 2.1 手机号码 短信验证码 密码非空判断
+    if not all([mobile, password]):
+        # 返回错误给前端展示
+        return jsonify(errno=RET.PARAMERR, errmsg="提交参数不足")
+    # 2.2 手机号码格式校验
+    if not re.match('1[3578][0-9]{9}', mobile):
+        return jsonify(errno=RET.PARAMERR, errmsg="手机号码格式错误")
+
+    #3.1 根据手机号码查询用户
+    try:
+        user = User.query.filter_by(mobile=mobile).first()
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg="从mysql查询用户异常")
+    if not user:
+        # 用户不存在
+        return jsonify(errno=RET.NODATA, errmsg="用户不存在")
+
+    #3.2 用户填写的密码和用户之前设置密码进行比较
+    if not user.check_passowrd(password):
+        return jsonify(errno=RET.PARAMERR, errmsg="密码填写错误")
+
+    #3.2 一致：登录成功 使用session记录用户信息
+    session["user_id"] = user.id
+    session["nick_name"] = user.nick_name
+    session["mobile"] = user.mobile
+
+    # 记录最后一次登录时间 (修改对象属性值)
+    user.last_login = datetime.now()
+
+    # 对模型对象进行增删改查之后需要再次提交这种变更关联到数据库
+    # 如果你不像commit()就要去设置数据库的相关的配置属性（SQLALCHEMY_COMMIT_ON_TEARDOWN = True）
+    try:
+        db.session.commit()
+    except Exception as e:
+        current_app.logger.error(e)
+        db.session.rollback()
+        return jsonify(errno=RET.DBERR, errmsg="提交到数据库异常")
+
+    #4.返回值处理
+    return jsonify(errno=RET.OK, errmsg="登录成功")
+
+
 
 @passport_bp.route('/register', methods=["POST"])
 def register():

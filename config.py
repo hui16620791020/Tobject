@@ -14,6 +14,9 @@ class Config(object):
     SQLALCHEMY_DATABASE_URI = "mysql://root:cq@127.0.0.1:3306/information16"
     # 不跟踪数据库修改
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    # 在app对象获取db.session对象结束的时候自动提交数据库的修改操作
+    # 就等同于db.session.commit()
+    SQLALCHEMY_COMMIT_ON_TEARDOWN = True
 
     # redis数据库配置信息
     REDIS_HOST = "127.0.0.1"

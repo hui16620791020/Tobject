@@ -74,6 +74,9 @@ class User(BaseModel, db.Model):
         self.password_hash = generate_password_hash(value)
 
     def check_passowrd(self, password):
+        # 传入未加密的密码进行密码校验的方法
+        # 参数1：加密的密码 参数2： 未加密的密码 返回值：BOOL
+        # 将传入的加密的密码和未加密的密码按照之前generate_password_hash指定的方法再次加密进行比较
         return check_password_hash(self.password_hash, password)
 
     def to_dict(self):
