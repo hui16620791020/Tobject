@@ -1,8 +1,10 @@
+from flask import g
 from info.models import User, News, Category
 from info.utils.response_code import RET
 from . import index_bp
 from flask import session, current_app, render_template, request, jsonify
 from info import redis_store, models, constants
+from info.utils.common import login_user_data
 
 
 @index_bp.route('/news_list')
@@ -75,20 +77,12 @@ def get_news_list():
 
 #2. 使用蓝图对象
 # 127.0.0.1:5000/index/
+
 @index_bp.route('/')
+@login_user_data
 def index():
     #------- 1.查询用户信息将用户信息通过模板带回进行展示--------
-    # 1. 如果用户登录成功就能够获取用户的id
-    user_id = session.get("user_id")
-    user = None
-    # 2. 根据用户id查询用户所有的数据
-    try:
-        if user_id:
-            user = User.query.get(user_id)
-    except Exception as e:
-        current_app.logger.error(e)
-        # 切记不需要return
-
+    user = g.user
     # if user:
     #     return user.to_dict()
     # else:
@@ -100,6 +94,8 @@ def index():
         news_model_list = News.query.order_by(News.clicks.desc()).limit(constants.CLICK_RANK_MAX_NEWS)
     except Exception as e:
         current_app.logger.error(e)
+        # 切记不需要return
+
 
     # 将模型列表转换成字典列表
     news_dict_list = []
