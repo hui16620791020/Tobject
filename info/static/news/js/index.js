@@ -59,7 +59,12 @@ $(function () {
                 // 保证当前页面小于总页数
                 if(cur_page < total_page){
                      //请求数据
+                    data_querying = true
                     updateNewsData()
+                }else{
+                    // 页码超出总数的也不能去加载数据
+                    data_querying = true
+
                 }
             }
         }

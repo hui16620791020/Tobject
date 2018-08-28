@@ -1,8 +1,9 @@
+from flask import abort
 from flask import current_app
 from flask import g
 from flask import render_template
 from flask import session
-from info import constants
+from info import constants, db
 from info.models import News, User
 from . import news_bp
 from info.utils.common import login_user_data
@@ -46,9 +47,32 @@ def news_detail(news_id):
         # 将新闻模型对象转成成字典对象添加到news_dict_list列表中
         news_dict_list.append(news.to_dict())
 
+    # ------- 3.查询新闻的详情内容数据进行展示--------
+    try:
+        news = News.query.get(news_id)
+    except Exception as e:
+        current_app.logger.error(e)
+        abort(404)
+
+    if not news:
+        abort(404)
+
+    # 注意： 浏览量自增
+    news.clicks += 1
+
+    try:
+        db.session.commit()
+    except Exception as e:
+        current_app.logger.error(e)
+        # 回滚
+        db.session.rollback()
+        abort(404)
+
+    # 组织响应数据
     data = {
         "user_info": user.to_dict() if user else None,
         "newsClicksList": news_dict_list,
+        "news": news.to_dict() if news else None
     }
 
     return render_template("news/detail.html", data=data)
