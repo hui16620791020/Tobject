@@ -68,11 +68,26 @@ def news_detail(news_id):
         db.session.rollback()
         abort(404)
 
+    # ------- 4.查询用户是否收藏过该新闻--------
+    # False: 未收藏 True: 收藏过了
+    is_collected = False
+
+    # 1.判断用户是否登录
+    if not user:
+        abort(404)
+
+    # 2.判断新闻对象是否在收藏列表
+    if news in user.collection_news:
+        # 已经收藏了该新闻
+        is_collected = True
+
+
     # 组织响应数据
     data = {
         "user_info": user.to_dict() if user else None,
         "newsClicksList": news_dict_list,
-        "news": news.to_dict() if news else None
+        "news": news.to_dict() if news else None,
+        "is_collected": is_collected
     }
 
     return render_template("news/detail.html", data=data)
