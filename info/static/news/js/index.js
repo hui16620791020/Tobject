@@ -54,6 +54,7 @@ $(function () {
             // data_querying: false 表示没有人在加载数据
             // 拖动到尾部我们就可以再去请求下一页的数据
             if(!data_querying){
+
                 cur_page += 1
                 // 保证当前页面小于总页数
                 if(cur_page < total_page){
@@ -87,9 +88,9 @@ function updateNewsData() {
             for (var i=0;i<resp.data.newsList.length;i++) {
                 var news = resp.data.newsList[i]
                 var content = '<li>'
-                content += '<a href="#" class="news_pic fl"><img src="' + news.index_image_url + '?imageView2/1/w/170/h/170"></a>'
-                content += '<a href="#" class="news_title fl">' + news.title + '</a>'
-                content += '<a href="#" class="news_detail fl">' + news.digest + '</a>'
+                content += '<a href="/news/'+ news.id +'" class="news_pic fl"><img src="' + news.index_image_url + '?imageView2/1/w/170/h/170"></a>'
+                content += '<a href="/news/'+ news.id +'" class="news_title fl">' + news.title + '</a>'
+                content += '<a href="/news/'+ news.id +'" class="news_detail fl">' + news.digest + '</a>'
                 content += '<div class="author_info fl">'
                 content += '<div class="source fl">来源：' + news.source + '</div>'
                 content += '<div class="time fl">' + news.create_time + '</div>'
