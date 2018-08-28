@@ -40,6 +40,7 @@ def get_news_list():
     filters = []
     if cid != 1:
         # 将查询条件添加到filter列表中
+        # ==底层是重写过的 News.category_id == cid是一个查询条件
         filters.append(News.category_id == cid)
 
     try:
