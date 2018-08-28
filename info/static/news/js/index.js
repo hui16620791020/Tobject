@@ -11,12 +11,17 @@ $(function () {
 
     // 首页分类切换
     $('.menu li').click(function () {
+
+        // 获取分类id值
         var clickCid = $(this).attr('data-cid')
+
         $('.menu li').each(function () {
             $(this).removeClass('active')
         })
+        // 将当前点击的分类激活
         $(this).addClass('active')
 
+        // 6 != 2 切换分类了
         if (clickCid != currentCid) {
             // 记录当前分类id
             currentCid = clickCid
@@ -24,6 +29,7 @@ $(function () {
             // 重置分页参数
             cur_page = 1
             total_page = 1
+            // 请求数据
             updateNewsData()
         }
     })

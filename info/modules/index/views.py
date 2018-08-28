@@ -1,4 +1,4 @@
-from info.models import User, News
+from info.models import User, News, Category
 from info.utils.response_code import RET
 from . import index_bp
 from flask import session, current_app, render_template, request, jsonify
@@ -107,10 +107,24 @@ def index():
         # 将新闻模型对象转成成字典对象添加到news_dict_list列表中
         news_dict_list.append(news.to_dict())
 
+    # ------- 3.查询新闻的分类数据进行展示--------
+    categories = []
+    try:
+        categories = Category.query.all()
+    except Exception as e:
+        current_app.logger.error(e)
+
+    # 对象模型列表转字典列表
+    category_dict_list = []
+    for category in categories if  categories else []:
+        # 将category对象转换成字典添加到列表中
+        category_dict_list.append(category.to_dict())
+
     # 构建响应数据
     data = {
         "user_info": user.to_dict() if user else None,
-        "newsClicksList": news_dict_list
+        "newsClicksList": news_dict_list,
+        "categories": category_dict_list
     }
 
     return render_template("index.html", data=data)
