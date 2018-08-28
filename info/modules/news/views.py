@@ -1,12 +1,67 @@
-from flask import abort
+from flask import abort, jsonify
 from flask import current_app
 from flask import g
 from flask import render_template
+from flask import request
 from flask import session
 from info import constants, db
 from info.models import News, User
+from info.utils.response_code import RET
 from . import news_bp
 from info.utils.common import login_user_data
+
+
+# /news/news_collect POST
+@news_bp.route('/news_collect', methods=["POST"])
+@login_user_data
+def news_collect():
+    """新闻收藏、取消收藏接口"""
+    """
+    1.获取参数
+        1.1 用户对象 新闻id action(收藏、取消收藏)
+    2.校验参数
+        2.1 非空判断
+        2.2 action处于["collect", "cancel_collect"]
+    3.逻辑处理
+        3.1 根据新闻id查询出该新闻
+        3.2 收藏：将新闻添加到user.collection_news列表中
+        3.3 取消收藏：将新闻从user.collection_news列表移除
+    4.返回值处理
+    """
+
+    # 1.1 用户对象 新闻id action(收藏、取消收藏)
+    params_dict = request.json
+    news_id = params_dict.get("news_id")
+    action = params_dict.get("action")
+    user = g.user
+
+    #2.1 非空判断
+    if not all([news_id, action, user]):
+        return jsonify(errno=RET.PARAMERR, errmsg="参数不足")
+    #2.2 action处于["collect", "cancel_collect"]
+    if action not in ["collect", "cancel_collect"]:
+        return jsonify(errno=RET.PARAMERR, errmsg="参数填写错误")
+
+    #3.1 根据新闻id查询出该新闻
+    news = None
+    try:
+        news = News.query.get(news_id)
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg="查询新闻数据异常")
+
+    if not news:
+        return jsonify(errno=RET.NODATA, errmsg="新闻不存在")
+
+    #3.2 收藏：将新闻添加到user.collection_news列表中
+    if action == "collect":
+        user.collection_news.append(news)
+    else:
+        #3.3 取消收藏：将新闻从user.collection_news列表移除
+        user.collection_news.remove(news)
+
+    # 4.返回值处理
+    return jsonify(errno=RET.OK, errmsg="OK")
 
 
 # 127.0.0.1:5000/news/12
