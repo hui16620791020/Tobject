@@ -7,5 +7,5 @@ from . import news_bp
 @news_bp.route('/<int:news_id>')
 def news_detail(news_id):
     """新闻详情首页接口"""
-
-    return render_template("news/detail.html")
+    data = {}
+    return render_template("news/detail.html", data=data)
