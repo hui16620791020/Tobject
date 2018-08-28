@@ -14,11 +14,78 @@ $(function(){
     // 收藏
     $(".collection").click(function () {
 
+
+        params ={
+            "news_id": $(this).attr("data-newid"),
+            "action": "collect"
+        }
+        // 发起注册请求
+        $.ajax({
+            // 设置url
+             url: "/news/news_collect",
+             // 设置请求方式
+             type: "post",
+             // 将js对象转换成json字符串发送给后端
+             data: JSON.stringify(params),
+             // 在请求头里面带上csrf_token随机值
+             headers:{
+                 "X-CSRFToken": getCookie("csrf_token")
+             },
+             // 声明上传的数据内容格式是 json字符串
+             contentType: "application/json",
+             success: function (resp) {
+                 if (resp.errno == "0") {
+                    // 收藏成功
+                    // 显示收藏按钮
+                    $(".collection").hide();
+                    // 隐藏取消收藏按钮
+                    $(".collected").show();
+                }else if (resp.errno == "4101"){
+                    $('.login_form_con').show();
+                }else{
+                    alert(resp.errmsg);
+                }
+             }
+         })
+
        
     })
 
     // 取消收藏
     $(".collected").click(function () {
+
+            params ={
+            "news_id": $(this).attr("data-newid"),
+            "action": "cancel_collect"
+        }
+        // 发起注册请求
+        $.ajax({
+            // 设置url
+             url: "/news/news_collect",
+             // 设置请求方式
+             type: "post",
+             // 将js对象转换成json字符串发送给后端
+             data: JSON.stringify(params),
+             // 在请求头里面带上csrf_token随机值
+             headers:{
+                 "X-CSRFToken": getCookie("csrf_token")
+             },
+             // 声明上传的数据内容格式是 json字符串
+             contentType: "application/json",
+             success: function (resp) {
+                 if (resp.errno == "0") {
+                    // 收藏成功
+                    // 隐藏收藏按钮
+                    $(".collection").show();
+                    // 显示取消收藏按钮
+                    $(".collected").hide();
+                }else if (resp.errno == "4101"){
+                    $('.login_form_con').show();
+                }else{
+                    alert(resp.errmsg);
+                }
+             }
+         })
 
      
     })

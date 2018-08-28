@@ -5,10 +5,76 @@ from flask import render_template
 from flask import request
 from flask import session
 from info import constants, db
-from info.models import News, User
+from info.models import News, User, Comment
 from info.utils.response_code import RET
 from . import news_bp
 from info.utils.common import login_user_data
+
+
+@news_bp.route('/news_comment', methods=["POST"])
+@login_user_data
+def news_comment():
+    """新闻评论接口 （主评论、子评论）"""
+    """
+    1.获取参数
+        1.1 用户对象 新闻id comment评论内容，评论的parent_id
+    2.校验参数
+        2.1 非空判断
+        2.2 用户是否登录判断
+    3.逻辑处理
+        3.1 根据news_id查询该新闻是否存在
+        3.2 创建评论对象 给各个属性赋值
+        3.3 parent_id是否有值，有值：子评论 没有值：主评论
+        3.4 将评论对象保存到数据
+    4.返回值处理
+    """
+    # 1.1 用户对象 新闻id comment评论内容，评论的parent_id
+    params_dict = request.json
+    news_id = params_dict.get("news_id")
+    comment = params_dict.get("comment")
+    # 根据前端需求来传递的
+    parent_id = params_dict.get("parent_id")
+
+    user = g.user
+    if not user:
+        return jsonify(errno=RET.SESSIONERR, errmsg="用户未登录")
+
+    #2.1 非空判断
+    if not all([news_id, comment]):
+        return jsonify(errno=RET.PARAMERR, errmsg="参数不足")
+
+    #3.1 根据news_id查询该新闻是否存在
+    news = None
+    try:
+        news = News.query.get(news_id)
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg="查询新闻数据异常")
+
+    if not news:
+        return jsonify(errno=RET.NODATA, errmsg="新闻不存在")
+
+    #3.2 创建评论对象 给各个属性赋值
+    comment_obj = Comment()
+    comment_obj.user_id = user.id
+    comment_obj.news_id = news_id
+    comment_obj.content = comment
+    # 3.3 parent_id是否有值，有值：子评论 没有值：主评论
+    if parent_id:
+        comment_obj.parent_id = parent_id
+
+    #3.4 将评论对象保存到数据
+    try:
+        db.session.add(comment_obj)
+        db.session.commit()
+    except Exception as e:
+        current_app.logger.error(e)
+        # 回滚
+        db.session.rollback()
+        return jsonify(errno=RET.DBERR, errmsg="评论对象保存到数据库异常")
+
+    # 4. 组织响应对象
+    return jsonify(errno=RET.OK, errmsg="评论成功")
 
 
 # /news/news_collect POST
@@ -35,8 +101,11 @@ def news_collect():
     action = params_dict.get("action")
     user = g.user
 
+    if not user:
+        return jsonify(errno=RET.SESSIONERR, errmsg="用户未登录")
+
     #2.1 非空判断
-    if not all([news_id, action, user]):
+    if not all([news_id, action]):
         return jsonify(errno=RET.PARAMERR, errmsg="参数不足")
     #2.2 action处于["collect", "cancel_collect"]
     if action not in ["collect", "cancel_collect"]:
@@ -59,6 +128,14 @@ def news_collect():
     else:
         #3.3 取消收藏：将新闻从user.collection_news列表移除
         user.collection_news.remove(news)
+
+    # 3.3 你可以选择提交修改到数据库
+    try:
+        db.session.commit()
+    except Exception as e:
+        current_app.logger.error(e)
+        db.session.rollback()
+        return jsonify(errno=RET.DBERR, errmsg="保存收藏数据异常")
 
     # 4.返回值处理
     return jsonify(errno=RET.OK, errmsg="OK")
