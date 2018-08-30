@@ -320,12 +320,34 @@ def news_detail(news_id):
         comments = Comment.query.filter(Comment.news_id == news_id).order_by(Comment.create_time.desc()).all()
     except Exception as e:
         current_app.logger.error(e)
+
+    # ------- 6.查询当前用户对该新闻的那几条评论点过赞--------
+    #1. 查询出当前新闻的所有评论，取得所有评论的id —>  list[1,2,3,4,5,6]
+    comment_id_list = [comment.id for comment in comments]
+
+    #2.再通过评论点赞模型(CommentLike)查询当前用户点赞了那几条评论  —>[模型1,模型2...]
+    # 过滤出该用户点过那几条评论的赞
+    commentlike_model_list = CommentLike.query.filter(CommentLike.comment_id.in_(comment_id_list),
+                                                      CommentLike.user_id == user.id
+                                                      ).all()
+    #3. comment_like.comment_id通过上一步的模型列表，获取所以点赞过的评论id
+    commentlike_id_list = [commentlike.comment_id for commentlike in commentlike_model_list]
+
     # 模型列表转字典列表
     comment_dict_list = []
+    # 遍历模型对象列表
     for comment in comments if comments else []:
         # 模型对象转成字典
         comment_dict = comment.to_dict()
+        comment_dict["is_like"] = False
+        # 过滤那条评论的是被该用户点过赞的
+        # [1,2,3,4,5,6] --> [1,3,5]
+        if comment.id in commentlike_id_list:
+            comment_dict["is_like"] = True
+
         comment_dict_list.append(comment_dict)
+
+
 
     # 组织响应数据
     data = {
