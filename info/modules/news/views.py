@@ -5,10 +5,108 @@ from flask import render_template
 from flask import request
 from flask import session
 from info import constants, db
-from info.models import News, User, Comment
+from info.models import News, User, Comment, CommentLike
 from info.utils.response_code import RET
 from . import news_bp
 from info.utils.common import login_user_data
+
+
+@news_bp.route('/comment_like')
+@login_user_data
+def comment_like():
+    """评论的点赞、取消点赞接口"""
+    """
+       1.获取参数
+           1.1 用户对象 新闻id comment_id评论的id，action:(点赞、取消点赞)
+       2.校验参数
+           2.1 非空判断
+           2.2 用户是否登录判断
+           2.3 action in ["add", "remove"]
+       3.逻辑处理
+          3.1 根据comment_id查询评论对象
+          3.2 根据action进行点赞、取消点赞的操作
+          3.3 新建comment_like模型对象 将其属性赋值保存到数据库
+       4.返回值处理
+       """
+    #1.1 用户对象 新闻id comment_id评论的id，action:(点赞、取消点赞)
+    params_dict = request.json
+    news_id = params_dict.get("news_id")
+    comment_id = params_dict.get("comment_id")
+    action = params_dict.get("action")
+    user = g.user
+
+    #2.1 非空判断
+    if not all([news_id, comment_id, action]):
+        return jsonify(errno=RET.PARAMERR, errmsg="参数不足")
+
+    #2.2 用户是否登录判断
+    if not user:
+        return jsonify(errno=RET.SESSIONERR, errmsg="用户未登录")
+
+    #2.3 action in ["add", "remove"]
+    if action not in ["add", "remove"]:
+        return jsonify(errno=RET.PARAMERR, errmsg="action参数错误")
+
+    #3.1 根据comment_id查询评论对象
+    comment = None
+    try:
+        comment = Comment.query.get(comment_id)
+    except Exception as e:
+        return jsonify(errno=RET.DBERR, errmsg="查询评论对象异常")
+
+    if not comment:
+        return jsonify(errno=RET.NODATA, errmsg="评论不存在")
+
+    #3.2 根据action进行点赞、取消点赞的操作
+    if action == "add":
+        # 点赞
+        comment_like = None
+        try:
+            # 如果存在comment_like对象表示该用户对该评论点过赞
+            comment_like = CommentLike.query.filter(CommentLike.comment_id==comment_id,
+                                    CommentLike.user_id==user.id).first()
+        except Exception as e:
+            current_app.logger.error(e)
+            return jsonify(errno=RET.DBERR, errmsg="查询comment_like异常")
+
+        if not comment_like:
+            # 1.创建CommentLike对象(维护用户和评论的多对多的第三张表的关系)
+            comment_like = CommentLike()
+            comment_like.user_id = user.id
+            comment_like.comment_id = comment_id
+            # 将模型对象添加到数据库会话对象中
+            db.session.add(comment_like)
+
+            #2.评论模型对象中like_count属性赋值 点赞数量加一
+            comment.like_count += 1
+    else:
+        # 取消点赞
+        comment_like = None
+        # 如果存在comment_like对象表示该用户对该评论点过赞
+        try:
+            # 如果存在comment_like对象表示该用户对该评论点过赞
+            comment_like = CommentLike.query.filter(CommentLike.comment_id == comment_id,
+                                                    CommentLike.user_id == user.id).first()
+        except Exception as e:
+            current_app.logger.error(e)
+            return jsonify(errno=RET.DBERR, errmsg="查询comment_like异常")
+
+        if comment_like:
+            # 用户取消点赞删除中间表的关系
+            db.session.delete(comment_like)
+            # 2.评论模型对象中like_count属性赋值 取消点赞数量减一
+            comment.like_count -= 1
+
+    #3.3 新建comment_like模型对象 将其属性赋值保存到数据库
+    try:
+        db.session.commit()
+    except Exception as e:
+        current_app.logger.error(e)
+        db.session.rollback()
+        return jsonify(errno=RET.DBERR, errmsg="保存comment_like模型对象异常")
+
+    #4.组织响应数据
+    return jsonify(errno=RET.OK, errmsg="OK")
 
 
 @news_bp.route('/news_comment', methods=["POST"])
