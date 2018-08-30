@@ -74,7 +74,7 @@ def news_comment():
         return jsonify(errno=RET.DBERR, errmsg="评论对象保存到数据库异常")
 
     # 4. 组织响应对象
-    return jsonify(errno=RET.OK, errmsg="评论成功")
+    return jsonify(errno=RET.OK, errmsg="评论成功", data=comment_obj.to_dict())
 
 
 # /news/news_collect POST
@@ -136,6 +136,8 @@ def news_collect():
         current_app.logger.error(e)
         db.session.rollback()
         return jsonify(errno=RET.DBERR, errmsg="保存收藏数据异常")
+
+
 
     # 4.返回值处理
     return jsonify(errno=RET.OK, errmsg="OK")
@@ -213,13 +215,27 @@ def news_detail(news_id):
         # 已经收藏了该新闻
         is_collected = True
 
+    # ------- 5.查询新闻的评论的列表数据--------
+    comments = []
+    try:
+        # 查询对应新闻的评论列表 [comment1, comment2....]
+        comments = Comment.query.filter(Comment.news_id == news_id).order_by(Comment.create_time.desc()).all()
+    except Exception as e:
+        current_app.logger.error(e)
+    # 模型列表转字典列表
+    comment_dict_list = []
+    for comment in comments if comments else []:
+        # 模型对象转成字典
+        comment_dict = comment.to_dict()
+        comment_dict_list.append(comment_dict)
 
     # 组织响应数据
     data = {
         "user_info": user.to_dict() if user else None,
         "newsClicksList": news_dict_list,
         "news": news.to_dict() if news else None,
-        "is_collected": is_collected
+        "is_collected": is_collected,
+        "comments": comment_dict_list
     }
 
     return render_template("news/detail.html", data=data)
