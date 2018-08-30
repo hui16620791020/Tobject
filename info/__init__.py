@@ -98,5 +98,9 @@ def create_app(config_name): # development
     from info.modules.news import news_bp
     app.register_blueprint(news_bp)
 
+    # 用户模块
+    from info.modules.profile import profile_bp
+    app.register_blueprint(profile_bp)
+
 
     return app
