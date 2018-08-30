@@ -206,14 +206,16 @@ def news_detail(news_id):
     # False: 未收藏 True: 收藏过了
     is_collected = False
 
-    # 1.判断用户是否登录
-    if not user:
-        abort(404)
+    # # 1.判断用户是否登录
+    # if not user:
+    #     abort(404)
 
-    # 2.判断新闻对象是否在收藏列表
-    if news in user.collection_news:
-        # 已经收藏了该新闻
-        is_collected = True
+    # 只有在用户处于登录状态才去判断用户是否收藏了该新闻
+    if user:
+        # 2.判断新闻对象是否在收藏列表
+        if news in user.collection_news if user.collection_news else []:
+            # 已经收藏了该新闻
+            is_collected = True
 
     # ------- 5.查询新闻的评论的列表数据--------
     comments = []
