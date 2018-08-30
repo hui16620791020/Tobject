@@ -5,4 +5,5 @@ from flask import Blueprint
 profile_bp = Blueprint("profile", __name__, url_prefix="/user")
 
 # 切记：让index模块知道有views.py这个文件
+
 from .views import *
