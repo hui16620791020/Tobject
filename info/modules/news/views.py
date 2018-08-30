@@ -11,7 +11,7 @@ from . import news_bp
 from info.utils.common import login_user_data
 
 
-@news_bp.route('/comment_like')
+@news_bp.route('/comment_like', methods=["POST"])
 @login_user_data
 def comment_like():
     """评论的点赞、取消点赞接口"""
@@ -60,7 +60,6 @@ def comment_like():
     #3.2 根据action进行点赞、取消点赞的操作
     if action == "add":
         # 点赞
-        comment_like = None
         try:
             # 如果存在comment_like对象表示该用户对该评论点过赞
             comment_like = CommentLike.query.filter(CommentLike.comment_id==comment_id,
@@ -81,7 +80,6 @@ def comment_like():
             comment.like_count += 1
     else:
         # 取消点赞
-        comment_like = None
         # 如果存在comment_like对象表示该用户对该评论点过赞
         try:
             # 如果存在comment_like对象表示该用户对该评论点过赞
